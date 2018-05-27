@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -8,6 +9,10 @@ using System.Threading;
 
 namespace GZipTest
 {
+
+    /// <summary>
+    /// Режим работы архиватора
+    /// </summary>
     enum ZipMode
     {
         Hold,
@@ -15,40 +20,47 @@ namespace GZipTest
         Decompressing
     }
 
-    public class Zipper:IZipper
+    /// <summary>
+    /// Архиватор
+    /// </summary>
+    partial class Zipper : IZipper
     {
-        int threadsLaunchCount = 0;
+        #region Fields and properties
 
+        /// <summary>
+        /// Сколько запущено потоков
+        /// </summary>
+        private int threadsLaunchCount = 0;
         ZipMode zipMode = ZipMode.Hold;
-         bool _cancelled = false;
-         bool _success = false;
+        bool _cancelled = false;
+        bool _success = false;
         string sourceFile;
         string destinationFile;
-         static int _threadsCount = Environment.ProcessorCount;
+        static int _threadsCount { get { return Environment.ProcessorCount; } }
 
-         int blockSize = 1024*1024;
+        const int blockSize = 1024 * 1024;
         int counterForDecompress = 0;
-         QueueManager _queueReader = new QueueManager();
-         QueueManager _queueWriter = new QueueManager();
-         ManualResetEvent[] doneEvents = new ManualResetEvent[_threadsCount];
+        QueueManager _queueReader = new QueueManager();
+        QueueManager _queueWriter = new QueueManager();
+        ManualResetEvent[] doneEvents = new ManualResetEvent[_threadsCount];
 
-        public int Compress(string sourceFile, string destinationFile)
+        #endregion
+
+        #region Functions:public
+
+        public void Compress(string sourceFile, string destinationFile)
         {
-            _queueReader.name = " Reader";
-            _queueWriter.name = " Writer";
             zipMode = ZipMode.Compressing;
             this.sourceFile = sourceFile;
             this.destinationFile = destinationFile;
             Launch();
-            return 1;
         }
-        public int Decompress(string sourceFile, string destinationFile)
+        public void Decompress(string sourceFile, string destinationFile)
         {
             zipMode = ZipMode.Decompressing;
             this.sourceFile = sourceFile;
             this.destinationFile = destinationFile;
             Launch();
-            return 1;
         }
 
         public bool GetCommandResult()
@@ -60,15 +72,22 @@ namespace GZipTest
         {
             _cancelled = true;
         }
-        
 
+        #endregion
+
+        #region Functions:private
+
+        /// <summary>
+        /// Запуск команды
+        /// </summary>
         private void Launch()
         {
             if (zipMode == ZipMode.Hold)
                 throw new Exception("Please select the command to execute");
             Console.WriteLine("{0}...\n", zipMode);
 
-            Thread _reader = new Thread(new ThreadStart(Read));
+            Thread _reader = new Thread(new ThreadStart(ReadFromFile));
+            Thread[] workers = new Thread[_threadsCount];
 
             _reader.Start();
 
@@ -76,13 +95,20 @@ namespace GZipTest
             {
                 doneEvents[i] = new ManualResetEvent(false);
                 if (zipMode == ZipMode.Compressing)
-                    ThreadPool.QueueUserWorkItem(CompressExecute, i);
+                {
+                    //ThreadPool.QueueUserWorkItem(CompressExecute, i);
+                    workers[i] = new Thread(CompressExecute);
+                }
                 else
-                    ThreadPool.QueueUserWorkItem(DecompressExecute, i);
-                
+                {
+                    //ThreadPool.QueueUserWorkItem(DecompressExecute, i);
+                    workers[i] = new Thread(DecompressExecute);
+                }
+                workers[i].Start(i);
+
             }
 
-            Thread _writer = new Thread(new ThreadStart(Write));
+            Thread _writer = new Thread(new ThreadStart(WriteToFile));
             _writer.Start();
 
             WaitHandle.WaitAll(doneEvents);
@@ -96,10 +122,14 @@ namespace GZipTest
             }
         }
 
-
+        /// <summary>
+        /// Выполнение сжатия
+        /// </summary>
+        /// <param name="i"></param>
         private void CompressExecute(object i)
         {
-            //Console.WriteLine("Thrd{1} beg - Thr count = {0}", ++threadsLaunchCount,i);
+            if(Program.isDebugMode)
+                Console.WriteLine("Thrd{1} beg - Thr count = {0}", ++threadsLaunchCount,i);
             try
             {
                 while (true && !_cancelled)
@@ -117,7 +147,7 @@ namespace GZipTest
                         {
                             cs.Write(_block.Buffer, 0, _block.Buffer.Length);
                         }
-                        
+
                         byte[] compressedData = _memoryStream.ToArray();
                         ByteBlock _out = new ByteBlock(_block.Id, compressedData);
                         _queueWriter.EnqueueForWriting(_out);
@@ -127,21 +157,28 @@ namespace GZipTest
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error in thread number {0}. \r\n Error description: {1}\r\nStackTrace: {2}", i, ex.Message,ex.StackTrace);
+                Console.WriteLine("Error in thread number {0}. \r\n Error description: {1}\r\nStackTrace: {2}", i, ex.Message, ex.StackTrace);
                 _cancelled = true;
             }
             finally
             {
                 ManualResetEvent doneEvent = doneEvents[(int)i];
                 doneEvent.Set();
-                //Console.WriteLine("Thr{1} end - Thr count = {0}", --threadsLaunchCount, i);
+                if (Program.isDebugMode)
+                Console.WriteLine("Thr{1} end - Thr count = {0}", --threadsLaunchCount, i);
             }
 
         }
+
+        /// <summary>
+        /// Выполнение разарихивирования
+        /// </summary>
+        /// <param name="i"></param>
         private void DecompressExecute(object i)
         {
-            //Console.WriteLine("Thrd{1} beg - Thr count = {0}", ++threadsLaunchCount, i);
-            try
+            if (Program.isDebugMode)
+                Console.WriteLine("Thrd{1} beg - Thr count = {0}", ++threadsLaunchCount, i);
+                try
             {
                 while (true && !_cancelled)
                 {
@@ -168,13 +205,21 @@ namespace GZipTest
             }
             finally
             {
-                //Console.WriteLine("Thr{1} end - Thr count = {0}", --threadsLaunchCount, i);
+                ManualResetEvent doneEvent = doneEvents[(int)i];
+                doneEvent.Set();
+                if (Program.isDebugMode)
+                    Console.WriteLine("Thr{1} end - Thr count = {0}", --threadsLaunchCount, i);
             }
         }
 
-        private void Read()
+
+        /// <summary>
+        /// Считывание файла
+        /// </summary>
+        private void ReadFromFile()
         {
-            //Console.WriteLine("Read  beg - Thr count = {0}", ++threadsLaunchCount);
+            if (Program.isDebugMode)
+                Console.WriteLine("Read  beg - Thr count = {0}", ++threadsLaunchCount);
             try
             {
                 if (zipMode == ZipMode.Compressing)
@@ -230,13 +275,18 @@ namespace GZipTest
             finally
             {
                 _queueReader.Stop();
-                //Console.WriteLine("Read  end - Thr count = {0}", --threadsLaunchCount);
+                if (Program.isDebugMode)
+                    Console.WriteLine("Read  end - Thr count = {0}", --threadsLaunchCount);
             }
         }
-
-        private void Write()
+        
+        /// <summary>
+        /// Запись в файл 
+        /// </summary>
+        private void WriteToFile()
         {
-            //Console.WriteLine("Write beg - Thr count = {0}", ++threadsLaunchCount);
+            if (Program.isDebugMode)
+                Console.WriteLine("Write beg - Thr count = {0}", ++threadsLaunchCount);
             try
             {
                 if (ZipMode.Compressing == zipMode)
@@ -255,7 +305,7 @@ namespace GZipTest
                         }
                     }
                 else
-                    using (FileStream _decompressedFile = new FileStream(sourceFile.Remove(sourceFile.Length - 3), FileMode.Append))
+                    using (FileStream _decompressedFile = new FileStream(destinationFile, FileMode.Append))
                     {
                         while (true && !_cancelled)
                         {
@@ -276,8 +326,11 @@ namespace GZipTest
             }
             finally
             {
-                //Console.WriteLine("Write end - Thr count = {0}",--threadsLaunchCount);
+                if (Program.isDebugMode)
+                    Console.WriteLine("Write end - Thr count = {0}",--threadsLaunchCount);
             }
         }
+
+        #endregion
     }
 }

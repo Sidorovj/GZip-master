@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace GZipTest
 {
     /// <summary>
+    /// Показывает прогресс-бар в консоли
     /// <see cref="https://gist.github.com/gabehesse/975472"/>
     /// </summary>
     public static class ConsoleProgressBar
@@ -14,8 +15,16 @@ namespace GZipTest
         static string sizeDimension;
         static long size;
         static long oldTotal;
+
+        /// <summary>
+        /// Отрисовка прогресс-бара
+        /// </summary>
+        /// <param name="progress">Текущее состояние</param>
+        /// <param name="total">Конечное состояние</param>
         public static void DrawTextProgressBar(long progress, long total)
         {
+            if (progress <0 ||total<=0)
+                return;
             if (oldTotal != total)
             {
                 sizeDimension = "B";
