@@ -21,7 +21,7 @@ namespace GZipTest
             Console.CursorLeft = 1;
             float onechunk = 30.0f / total;
 
-            //draw filled part
+            //draw filled part 
             int position = 1;
             for (int i = 0; i < onechunk * progress; i++)
             {
