@@ -44,23 +44,8 @@ namespace GZipTest
             Console.CancelKeyPress += new ConsoleCancelEventHandler(SoftExit);
             if (isDebugMode)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("[DEBUG MODE] hint: turn if off in Program class [isDebugMode] ");
-                Console.ForegroundColor = ConsoleColor.Gray;
-                var errs = UnitTests.RunTests();
-                if (errs.Count > 0)
-                {
-                    Console.WriteLine("     An error occured while running Unit tests: ");
-                    foreach (var err in errs)
-                        Console.WriteLine("{0}\r\n", err);
-                    Console.ReadKey();
+                if (1 == RunTasksIfDebug())
                     return 1;
-                }
-                Console.Clear();
-                Console.WriteLine("[DEBUG MODE] hint: turn if off in Program class [isDebugMode] ");
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("\r\n [All tests are ok]");
-                Console.ForegroundColor = ConsoleColor.Gray;
             }
 
             try
@@ -90,6 +75,31 @@ namespace GZipTest
             Console.WriteLine("\r\nPress any key to quit");
             Console.ReadKey();
             return 1;
+        }
+
+        /// <summary>
+        /// Подготовительные действия, при отладке
+        /// </summary>
+        static private int RunTasksIfDebug()
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("[DEBUG MODE] hint: turn if off in Program class [isDebugMode] ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            var errs = UnitTests.RunTests();
+            if (errs.Count > 0)
+            {
+                Console.WriteLine("     An error occured while running Unit tests: ");
+                foreach (var err in errs)
+                    Console.WriteLine("{0}\r\n", err);
+                Console.ReadKey();
+                return 1;
+            }
+            Console.Clear();
+            Console.WriteLine("[DEBUG MODE] hint: turn if off in Program class [isDebugMode] ");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("\r\n [All tests are ok]");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            return 0;
         }
 
         /// <summary>
