@@ -65,6 +65,7 @@ namespace GZipTest
             Console.WriteLine("{0}...\n", zipMode);
 
             Thread _reader = new Thread(new ThreadStart(Read));
+
             _reader.Start();
 
             for (int i = 0; i < _threadsCount; i++)
