@@ -5,6 +5,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Threading;
 
+
 namespace GZipTest
 {
     public class ByteBlock
