@@ -34,6 +34,7 @@ namespace GZipTest
         private object locker = new object();
         Queue<ByteBlock> queue = new Queue<ByteBlock>();
         bool isDead = false;
+        public string name = "";
         private int blockId = 0;
 
         public void EnqueueForWriting(ByteBlock _block)
@@ -48,7 +49,7 @@ namespace GZipTest
                 {
                     Monitor.Wait(locker);
                 }
-
+                
                 queue.Enqueue(_block);
                 blockId++;
                 Monitor.PulseAll(locker);
@@ -74,6 +75,7 @@ namespace GZipTest
         {
             lock (locker)
             {
+                if (queue.Count==0)
                 while (queue.Count == 0 && !isDead)
                     Monitor.Wait(locker);
 

@@ -11,8 +11,32 @@ namespace GZipTest
     /// </summary>
     public static class ConsoleProgressBar
     {
+        static string sizeDimension;
+        static long size;
+        static long oldTotal;
         public static void DrawTextProgressBar(long progress, long total)
         {
+            if (oldTotal != total)
+            {
+                sizeDimension = "B";
+                size = total;
+                if (total > 1024 * 1024 * 1024)
+                {
+                    sizeDimension = "GB";
+                    size = total / 1024 / 1024 / 1024;
+                }
+                else if (total > 1024 * 1024)
+                {
+                    sizeDimension = "MB";
+                    size = total / 1024 / 1024;
+                }
+                else if (total > 1024)
+                {
+                    sizeDimension = "KB";
+                    size = total / 1024;
+                }
+                oldTotal = total;
+            }
             //draw empty progress bar
             Console.CursorLeft = 0;
             Console.Write("["); //start
@@ -41,7 +65,7 @@ namespace GZipTest
             //draw totals
             Console.CursorLeft = 35;
             Console.BackgroundColor = ConsoleColor.Black;
-            Console.Write(" {0:N2} %",((double)progress/total*100));//progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
+            Console.Write(" {0:N2} % of {1} {2}", ((double)progress / total * 100), size, sizeDimension);//progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
         }
     }
 }
