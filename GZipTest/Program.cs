@@ -45,10 +45,7 @@ namespace GZipTest
                 if (args.Length == 0)
                 {
                     ShowHelp();
-                    args = new string[] { "compress", "C:/temp/WER6FC8.tmp.hdmp", "C:/temp/tem" };
-                    //args = new string[] { "decompress", "C:/temp/tem.gz", "C:/temp/tem.hdmp" };
-                    //File.Delete("C:/temp/tem.gz");
-                    //args = Console.ReadLine().Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                    args = Console.ReadLine().Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
                 }
                 int _result = Execute(args);
                 GC.Collect();

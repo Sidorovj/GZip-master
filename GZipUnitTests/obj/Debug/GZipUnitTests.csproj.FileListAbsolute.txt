@@ -8,3 +8,13 @@ C:\Users\p.s.sidorov\Cloud Mail.Ru\Программирование\C#\GZip-mast
 C:\Users\p.s.sidorov\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\bin\Debug\ru\Microsoft.VisualStudio.QualityTools.UnitTestFramework.resources.dll
 C:\Users\p.s.sidorov\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\obj\Debug\GZipUnitTests.dll
 C:\Users\p.s.sidorov\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\obj\Debug\GZipUnitTests.pdb
+C:\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\bin\Debug\Program.cs
+C:\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\bin\Debug\GZipUnitTests.dll
+C:\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\bin\Debug\GZipUnitTests.pdb
+C:\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\bin\Debug\GZipTest.exe
+C:\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+C:\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\bin\Debug\GZipTest.pdb
+C:\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\bin\Debug\ru\Microsoft.VisualStudio.QualityTools.UnitTestFramework.resources.dll
+C:\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\obj\Debug\GZipUnitTests.csprojResolveAssemblyReference.cache
+C:\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\obj\Debug\GZipUnitTests.dll
+C:\Cloud Mail.Ru\Программирование\C#\GZip-master\GZipUnitTests\obj\Debug\GZipUnitTests.pdb

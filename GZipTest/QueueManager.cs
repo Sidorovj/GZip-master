@@ -37,10 +37,10 @@ namespace GZipTest
     /// </summary>
     public class QueueManager
     {
-        object enqLocker = new object();
         object locker = new object();
         Queue<ByteBlock> queue = new Queue<ByteBlock>();
         bool isDead = false;
+        static int maxQueueLength = 0;
 
         // Доступ вовне нужен для того, чтобы увидеть прогресс
         public int blockId { get; private set; } = 0;
@@ -51,8 +51,12 @@ namespace GZipTest
         {
             get
             {
-                int _size = 100 * 1024 * 1024 / Zipper.blockSize;
-                return _size <= 1 ? 2 : _size;
+                if (maxQueueLength == 0)
+                {
+                    int _size = 100 * 1024 * 1024 / Zipper.blockSize;
+                    maxQueueLength = _size <= 1 ? 2 : _size;
+                }
+                return maxQueueLength;
             }
         }
 
