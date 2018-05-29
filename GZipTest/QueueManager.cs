@@ -37,31 +37,43 @@ namespace GZipTest
     /// </summary>
     public class QueueManager
     {
-        private object locker = new object();
+        object enqLocker = new object();
+        object locker = new object();
         Queue<ByteBlock> queue = new Queue<ByteBlock>();
         bool isDead = false;
-        private int blockId = 0;
+
+        // Доступ вовне нужен для того, чтобы увидеть прогресс
+        public int blockId { get; private set; } = 0;
+        /// <summary>
+        /// Ограничение макс. длины очереди. Поставим значение, исходя из доступных 200 МБ оперативки (100 для буфера и 100 для обработанного буфера)
+        /// </summary>
+        static int MaxQueueLength
+        {
+            get
+            {
+                int _size = 100 * 1024 * 1024 / Zipper.blockSize;
+                return _size <= 1 ? 2 : _size;
+            }
+        }
 
         /// <summary>
         /// Добавить элемент в очередь на запись в файл
         /// </summary>
-        /// <param name="_block"></param>
-        public void EnqueueForWriting(ByteBlock _block)
+        /// <param name="block"></param>
+        public void EnqueueForWriting(ByteBlock block)
         {
-            int id = _block.Id;
+            int _id = block.Id;
             lock (locker)
             {
                 if (isDead)
                     throw new InvalidOperationException("Queue already stopped");
 
-                while (id != blockId)
+                while (_id != blockId)
                 {
                     Monitor.Wait(locker);
                 }
 
-                queue.Enqueue(_block);
-                blockId++;
-                Monitor.PulseAll(locker);
+                AddBlockToQueue(block);
             }
         }
 
@@ -77,9 +89,7 @@ namespace GZipTest
                     throw new InvalidOperationException("Queue already stopped");
 
                 ByteBlock _block = new ByteBlock(blockId, buffer);
-                queue.Enqueue(_block);
-                blockId++;
-                Monitor.PulseAll(locker);
+                AddBlockToQueue(_block);
             }
         }
         
@@ -92,9 +102,9 @@ namespace GZipTest
                     while (queue.Count == 0 && !isDead)
                         Monitor.Wait(locker);
 
+                Monitor.PulseAll(locker);
                 if (queue.Count == 0)
                     return null;
-
                 return queue.Dequeue();
 
             }
@@ -110,6 +120,21 @@ namespace GZipTest
                 isDead = true;
                 Monitor.PulseAll(locker);
             }
+        }
+
+        /// <summary>
+        /// Добавляет элемент в очередь, если ее длина меньше допустимой
+        /// </summary>
+        /// <param name="block">Блок для постановки в очередь</param>
+        private void AddBlockToQueue(ByteBlock block)
+        {
+            while (queue.Count >= MaxQueueLength)
+            {
+                Monitor.Wait(locker);
+            }
+            queue.Enqueue(block);
+            blockId++;
+            Monitor.PulseAll(locker);
         }
     }
 }
