@@ -190,7 +190,7 @@ namespace GZipTest
             Debug.WriteLine("Thrd {0} start", i);
             try
             {
-                while (true && !cancelled)
+                while (true && !cancelled) 
                 {
                     ByteBlock _block = queueReader.Dequeue();
                     if (_block == null)
