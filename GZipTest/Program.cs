@@ -7,22 +7,11 @@ namespace GZipTest
     public interface IZipper
     {
         /// <summary>
-        /// Архивирует заданный файл
+        /// Выполняет операцию по сжатию/распаковке
         /// </summary>
-        /// <param name="sFile">Путь до файл</param>
-        /// <param name="dFile">Путь, куда сохранить файл</param>
-        void Compress(string sFile, string dFile);
-        /// <summary>
-        /// Разархивирует файл
-        /// </summary>
-        /// <param name="sFile">Путь до файл</param>
-        /// <param name="dFile">Путь, куда сохранить файл</param>
-        void Decompress(string sFile, string dFile);
-        /// <summary>
-        /// Получает результат выполнения команды
-        /// </summary>
-        /// <returns>true, если успех</returns>
-        bool GetCommandResult();
+        /// <returns></returns>
+        bool Execute();
+        
         /// <summary>
         /// Прерывает выполнение операции
         /// </summary>
@@ -37,9 +26,8 @@ namespace GZipTest
         /// <returns>0, если выполнение завершилось успешно</returns>
         static int Main(string[] args)
         {
-            zipper = new Zipper();
             Console.CancelKeyPress += new ConsoleCancelEventHandler(SoftExit);
-            
+            int _result = 1;
             try
             {
                 if (args.Length == 0)
@@ -47,14 +35,9 @@ namespace GZipTest
                     ShowHelp();
                     args = Console.ReadLine().Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
                 }
-                int _result = Execute(args);
+                _result = Execute(args);
                 GC.Collect();
-
                 Debug.WriteLine("Operation ended");
-                Console.WriteLine("\r\nPress any key to quit");
-                Console.ReadKey();
-
-                return _result;
             }
             catch (Exception ex)
             {
@@ -62,7 +45,7 @@ namespace GZipTest
             }
             Console.WriteLine("\r\nPress any key to quit");
             Console.ReadKey();
-            return 1;
+            return _result;
         }
         
         /// <summary>
@@ -78,16 +61,18 @@ namespace GZipTest
             switch (args[0].ToLower())
             {
                 case "compress":
-                    zipper.Compress(args[1], args[2]);                    
+                    zipper = new Compressor(args[1], args[2]);                 
                     break;
                 case "decompress":
-                    zipper.Decompress(args[1], args[2]);
+                    zipper = new Decompressor(args[1], args[2]);
                     break;
             }
             watch.Stop();
-            bool _success = zipper.GetCommandResult();
+            bool _success = zipper.Execute();
             if (_success)
-                Console.WriteLine("\r\nOperation successfully ended in {0:N2} {1}", watch.ElapsedMilliseconds < 500 ? watch.ElapsedMilliseconds : watch.ElapsedMilliseconds / 1000.0, watch.ElapsedMilliseconds < 500 ? "ms" : "seconds");
+                Console.WriteLine("\r\nOperation successfully ended in {0:N2} {1}", 
+                    watch.ElapsedMilliseconds < 500 ? watch.ElapsedMilliseconds : watch.ElapsedMilliseconds / 1000.0, 
+                    watch.ElapsedMilliseconds < 500 ? "ms" : "seconds");
             return _success ? 0 : 1;
         }
 

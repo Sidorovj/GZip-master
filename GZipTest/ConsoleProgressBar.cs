@@ -14,7 +14,7 @@ namespace GZipTest
     public static class ConsoleProgressBar
     {
         static string sizeDimension="";
-        static long size=0;
+        static long size=1;
         static long oldTotalSize;
         static object locker = new object();
 
